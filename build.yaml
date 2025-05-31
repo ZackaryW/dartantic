@@ -1,0 +1,19 @@
+targets:
+  $default:
+    builders:
+      dartantic|model_generator:
+        enabled: true
+        generate_for:
+          include:
+            - lib/**.dart
+            - test/**.dart
+
+builders:
+  model_generator:
+    import: "package:dartantic/modelGen/main.dart"
+    builder_factories: ["modelGeneratorBuilder"]
+    build_extensions: {".dart": [".dartantic.g.dart"]}
+    auto_apply: dependents
+    build_to: source
+    applies_builders: ["source_gen|combining_builder"]
+    required_inputs: [".dart"] 

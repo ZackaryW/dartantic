@@ -1,3 +1,10 @@
+// Helper extension to count occurrences of a substring
+extension StringCount on String {
+  int count(String substring) {
+    return split(substring).length - 1;
+  }
+}
+
 class ASG {
   /**
    * this class allows programmatically generate source code snippets
@@ -5,6 +12,59 @@ class ASG {
    */
   int indentCounter = 0;
   final StringBuffer buffer = StringBuffer();
+
+  void optimizeAssignments(RegExp regex) {
+    // Split the buffer into lines
+    final lines = buffer.toString().split('\n');
+    final optimizedLines = <String>[];
+    final seenAssignments = <String>[];
+    for (final line in lines) {
+      // Check if it's an assignment (contains '=' but not '==' or '!=')
+      if (line.contains('=') && !line.contains('==') && !line.contains('!=')) {
+        // Check if the line matches the regex
+        if (regex.hasMatch(line)) {
+          // Extract the assignment part (everything after the '=')
+          final assignment = line.substring(line.indexOf('=')).trim();
+
+          // Find the last seen assignment in the same scope
+          var shouldKeep = true;
+          for (var i = seenAssignments.length - 1; i >= 0; i--) {
+            final prevAssignment = seenAssignments[i];
+            if (prevAssignment == assignment) {
+              shouldKeep = false;
+              break;
+            }
+            // Stop looking if we hit a scope boundary
+            if (prevAssignment == 'SCOPE_BOUNDARY') {
+              break;
+            }
+          }
+
+          if (shouldKeep) {
+            seenAssignments.add(assignment);
+            optimizedLines.add(line);
+          }
+          continue;
+        }
+      }
+
+      // Add scope boundaries
+      if (line.contains('{')) {
+        seenAssignments.add('SCOPE_BOUNDARY');
+      }
+
+      // Keep non-assignment lines
+      optimizedLines.add(line);
+    }
+
+    // Clear the buffer and add the optimized lines
+    buffer.clear();
+    for (final line in optimizedLines) {
+      if (line.isNotEmpty) {
+        buffer.writeln(line);
+      }
+    }
+  }
 
   void add(String code) {
     if (code.contains('\n')) {
@@ -30,13 +90,14 @@ class ASG {
     // Split into lines and normalize
     final lines = raw.split('\n');
     final result = <String>[];
-    
+
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
       // Keep empty lines that are between non-empty lines
       if (line.trim().isEmpty) {
-        if (i > 0 && i < lines.length - 1 && 
-            lines[i - 1].trim().isNotEmpty && 
+        if (i > 0 &&
+            i < lines.length - 1 &&
+            lines[i - 1].trim().isNotEmpty &&
             lines[i + 1].trim().isNotEmpty) {
           result.add('');
         }
@@ -44,7 +105,7 @@ class ASG {
       }
       result.add(line);
     }
-    
+
     // Join with newlines and ensure trailing newline
     return result.join('\n') + '\n';
   }
@@ -67,6 +128,18 @@ class ASG {
     String defaultValue,
   ) {
     return '$varname[\'$key\'] ?? $defaultValue';
+  }
+
+  static ASG merge(List<dynamic> asgs) {
+    final newSa = ASG();
+    for (final asg in asgs) {
+      if (asg is ASG) {
+        newSa.add(asg.source);
+      } else if (asg is String) {
+        newSa.add(asg);
+      }
+    }
+    return newSa;
   }
 
   static ASG IF({
@@ -136,13 +209,13 @@ class ASG {
     newSa.advanceScope('try', () {
       newSa.add(tryBlock.source);
     });
-    
+
     if (catchBlock != null) {
       newSa.advanceScope('catch (e)', () {
         newSa.add(catchBlock.source);
       });
     }
-    
+
     if (finallyBlock != null) {
       newSa.advanceScope('finally', () {
         newSa.add(finallyBlock.source);
@@ -207,10 +280,7 @@ class ASG {
     return newSa;
   }
 
-  static ASG WHILE({
-    required String condition,
-    ASG? body,
-  }) {
+  static ASG WHILE({required String condition, ASG? body}) {
     final newSa = ASG();
     newSa.advanceScope('while ($condition)', () {
       if (body != null) {
@@ -220,10 +290,7 @@ class ASG {
     return newSa;
   }
 
-  static ASG DO_WHILE({
-    required String condition,
-    required ASG body,
-  }) {
+  static ASG DO_WHILE({required String condition, required ASG body}) {
     final newSa = ASG();
     newSa.advanceScope('do', () {
       newSa.add(body.source);
@@ -265,7 +332,7 @@ class ASG {
     bool isOverride = false,
   }) {
     final newSa = ASG();
-    
+
     // Add override annotation on its own line if present
     if (isOverride) {
       newSa.addLine('@override');
@@ -304,12 +371,13 @@ class ASG {
     List<ASG>? methods,
   }) {
     final newSa = ASG();
-    
+
     // Build class declaration
     final declaration = [
       'class $name',
       if (extendsClass != null) 'extends $extendsClass',
-      if (implementsList?.isNotEmpty ?? false) 'implements ${implementsList!.join(', ')}',
+      if (implementsList?.isNotEmpty ?? false)
+        'implements ${implementsList!.join(', ')}',
       if (mixinsList?.isNotEmpty ?? false) 'with ${mixinsList!.join(', ')}',
     ].where((s) => s.isNotEmpty).join(' ');
 
