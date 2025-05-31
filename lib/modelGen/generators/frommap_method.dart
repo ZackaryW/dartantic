@@ -1,6 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:dartantic/asg/asg.dart';
-import '../utils/field_utils.dart';
 import '../utils/code_utils.dart';
 
 class FromMapMethodGenerator {

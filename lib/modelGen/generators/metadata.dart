@@ -1,4 +1,3 @@
-import 'package:analyzer/dart/element/element.dart';
 import 'package:dartantic/asg/asg.dart';
 
 class MetadataGenerator {
