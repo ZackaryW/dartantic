@@ -152,3 +152,37 @@ lib/core/gen/
 - **Test Coverage**: Comprehensive test suite with 19 passing tests
 - **Performance Ready**: Generated code is efficient and type-safe
 - **Developer Experience**: Clean API matching Python Pydantic patterns 
+
+## Current Focus
+- Bloc code generation for Dartantic models
+- Implementing and testing bloc generation with proper naming conventions
+
+## Recent Changes
+1. Simplified bloc generator to use regex-based metadata extraction
+2. Updated bloc class naming convention to use `DttBloc` prefix
+   - Example: `TestUser` → `DttBlocTestUserCubit`, `DttBlocTestUserState`, etc.
+3. Fixed class generation issues:
+   - Properly closed state classes
+   - Fixed nullable type handling in `copyWith` methods
+   - Updated test file to use new naming convention
+
+## Active Decisions
+- Using `DttBloc` prefix for all bloc-related classes to maintain consistency with Dartantic's naming scheme
+- Keeping model validation and preprocessing methods in the original model class
+- Generated bloc code is part of the model file (using `part` directive)
+
+## Next Steps
+1. Test the updated bloc generator with more complex models
+2. Consider adding support for custom bloc event handling
+3. Document the bloc generation process and naming conventions
+
+## Important Patterns
+- Bloc classes follow the pattern: `DttBloc{ModelName}{Type}`
+  - Types: `State`, `StateData`, `Event`, `Cubit`, etc.
+- Model validation methods remain in original model class
+- Generated code is placed in `.bloc.g.dart` files
+
+## Learnings
+- Simpler regex-based approach is more maintainable than AST parsing
+- Consistent naming conventions are crucial for generated code
+- Part files help keep generated code organized while maintaining access to model methods 

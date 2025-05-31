@@ -269,4 +269,55 @@ class ValidateMethodGenerator {
 ### Adding New Features
 1. **Assess Scope**: Determine if it's method-level or system-level
 2. **Follow Patterns**: Use established utility and generator patterns
-3. **Maintain Separation**: Keep concerns cleanly separated 
+3. **Maintain Separation**: Keep concerns cleanly separated
+
+## Code Generation
+1. Model Generation
+   - Uses build_runner for code generation
+   - Generates `.dartantic.g.dart` files with model metadata
+   - Follows Pydantic-like patterns for validation and serialization
+
+2. Bloc Generation
+   - Standalone generator (`tool/generate_blocs.dart`)
+   - Uses regex to extract metadata from `.dartantic.g.dart` files
+   - Generates `.bloc.g.dart` files as part files
+   - Follows consistent naming: `DttBloc{ModelName}{Type}`
+   - Maintains model validation in original class
+
+## Design Patterns
+1. Model Pattern
+   - Immutable data classes
+   - Validation and preprocessing methods
+   - Mixin-based code generation
+   - Part file organization
+
+2. Bloc Pattern
+   - State management using BLoC pattern
+   - Cubit-based implementation
+   - State classes: Initial, Loading, Error, Data
+   - Event classes for updates and actions
+   - Validation integration with model methods
+
+## Component Relationships
+1. Model to Bloc
+   - Model provides validation and preprocessing
+   - Bloc uses model methods for data integrity
+   - Part file relationship maintains access to model methods
+   - Generated code follows model's field structure
+
+2. Generated Code Organization
+   - `.dartantic.g.dart`: Model metadata and mixins
+   - `.bloc.g.dart`: State management code
+   - Original file: Model definition and annotations
+
+## Critical Paths
+1. Model Generation
+   - Annotation processing
+   - Metadata generation
+   - Mixin implementation
+
+2. Bloc Generation
+   - Metadata extraction
+   - State/Event class generation
+   - Cubit implementation
+   - Validation integration 
