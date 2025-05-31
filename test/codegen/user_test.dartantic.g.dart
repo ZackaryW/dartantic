@@ -7,7 +7,7 @@ part of 'user_test.dart';
 // ModelGenerator
 // **************************************************************************
 
-final DttModelMeta _dtt_User_fieldMeta = DttModelMeta(
+const DttModelMeta _dtt_User_fieldMeta = DttModelMeta(
   fields: {
     'name': DttFieldMeta(
       type: 'String',
@@ -181,7 +181,7 @@ mixin _$UserMixin {
   }
 }
 
-final DttModelMeta _dtt_Profile_fieldMeta = DttModelMeta(
+const DttModelMeta _dtt_Profile_fieldMeta = DttModelMeta(
   fields: {
     'bio': DttFieldMeta(
       type: 'String',

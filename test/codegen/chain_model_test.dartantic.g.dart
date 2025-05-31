@@ -7,7 +7,7 @@ part of 'chain_model_test.dart';
 // ModelGenerator
 // **************************************************************************
 
-final DttModelMeta _dtt_Address_fieldMeta = DttModelMeta(
+const DttModelMeta _dtt_Address_fieldMeta = DttModelMeta(
   fields: {
     'street': DttFieldMeta(
       type: 'String',
@@ -125,7 +125,7 @@ mixin _$AddressMixin {
   }
 }
 
-final DttModelMeta _dtt_ContactInfo_fieldMeta = DttModelMeta(
+const DttModelMeta _dtt_ContactInfo_fieldMeta = DttModelMeta(
   fields: {
     'email': DttFieldMeta(
       type: 'String',
@@ -218,7 +218,7 @@ mixin _$ContactInfoMixin {
   }
 }
 
-final DttModelMeta _dtt_Employee_fieldMeta = DttModelMeta(
+const DttModelMeta _dtt_Employee_fieldMeta = DttModelMeta(
   fields: {
     'name': DttFieldMeta(
       type: 'String',

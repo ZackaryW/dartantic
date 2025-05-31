@@ -10,7 +10,7 @@ class MetadataGenerator {
 
     // Add the file-level field metadata dictionary
     asg.addLine(
-      'final DttModelMeta _dtt_${className}_fieldMeta = DttModelMeta(',
+      'const DttModelMeta _dtt_${className}_fieldMeta = DttModelMeta(',
     );
     asg.indentCounter++;
     asg.addLine('fields: {');
