@@ -11,10 +11,7 @@ void main() {
           ASG.FIELD(name: 'y', type: 'double', isFinal: true),
         ],
         constructors: [
-          ASG.CONSTRUCTOR(
-            name: 'Point',
-            parameters: ['this.x', 'this.y'],
-          ),
+          ASG.CONSTRUCTOR(name: 'Point', parameters: ['this.x', 'this.y']),
           ASG.CONSTRUCTOR(
             name: 'Point.origin',
             isConst: true,
@@ -117,27 +114,20 @@ void main() {
           ASG.FIELD(name: 'y', type: 'double', isFinal: true),
         ],
         constructors: [
-          ASG.CONSTRUCTOR(
-            name: 'Vector',
-            parameters: ['this.x', 'this.y'],
-          ),
+          ASG.CONSTRUCTOR(name: 'Vector', parameters: ['this.x', 'this.y']),
         ],
         methods: [
           ASG.METHOD(
             name: '+',
             returnType: 'Vector',
             parameters: ['Vector other'],
-            body: ASG.fromLines([
-              'return Vector(x + other.x, y + other.y);',
-            ]),
+            body: ASG.fromLines(['return Vector(x + other.x, y + other.y);']),
           ),
           ASG.METHOD(
             name: '*',
             returnType: 'Vector',
             parameters: ['double scalar'],
-            body: ASG.fromLines([
-              'return Vector(x * scalar, y * scalar);',
-            ]),
+            body: ASG.fromLines(['return Vector(x * scalar, y * scalar);']),
           ),
         ],
       );
@@ -236,4 +226,4 @@ void main() {
       );
     });
   });
-} 
+}

@@ -23,11 +23,7 @@ void main() {
     });
 
     test('fromLines creates ASG with multiple lines', () {
-      final result = ASG.fromLines([
-        'line 1',
-        'line 2',
-        'line 3',
-      ]);
+      final result = ASG.fromLines(['line 1', 'line 2', 'line 3']);
 
       expect(
         result.source,
@@ -42,10 +38,7 @@ void main() {
 
   group('ASG Map Operations', () {
     test('mapValue generates correct map access', () {
-      expect(
-        ASG.mapValue('myMap', 'key'),
-        equals("myMap['key']"),
-      );
+      expect(ASG.mapValue('myMap', 'key'), equals("myMap['key']"));
     });
 
     test('mapValueWithDefault handles null values', () {
@@ -58,9 +51,7 @@ void main() {
 
   group('ASG Exception Handling', () {
     test('throwException generates basic exception', () {
-      final result = ASG.throwException(
-        message: 'Something went wrong',
-      );
+      final result = ASG.throwException(message: 'Something went wrong');
 
       expect(
         result.source,
@@ -144,10 +135,7 @@ void main() {
 
   group('ASG Variable Operations', () {
     test('assignVar creates basic variable assignment', () {
-      expect(
-        ASG.assignVar('myVar', '42'),
-        equals('myVar = 42;'),
-      );
+      expect(ASG.assignVar('myVar', '42'), equals('myVar = 42;'));
     });
 
     test('assignVar creates final variable', () {
@@ -158,10 +146,7 @@ void main() {
     });
 
     test('assignVar handles null values', () {
-      expect(
-        ASG.assignVar('myVar', null),
-        equals('myVar = null;'),
-      );
+      expect(ASG.assignVar('myVar', null), equals('myVar = null;'));
     });
 
     test('assignVar handles null values with final', () {
@@ -211,10 +196,7 @@ void main() {
     test('WHILE generates while loop', () {
       final result = ASG.WHILE(
         condition: 'i < 10',
-        body: ASG.fromLines([
-          'print(i);',
-          'i++;',
-        ]),
+        body: ASG.fromLines(['print(i);', 'i++;']),
       );
 
       expect(
@@ -231,10 +213,7 @@ void main() {
     test('DO_WHILE generates do-while loop', () {
       final result = ASG.DO_WHILE(
         condition: 'i < 10',
-        body: ASG.fromLines([
-          'print(i);',
-          'i++;',
-        ]),
+        body: ASG.fromLines(['print(i);', 'i++;']),
       );
 
       expect(
@@ -293,4 +272,4 @@ void main() {
       );
     });
   });
-} 
+}

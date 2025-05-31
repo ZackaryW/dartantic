@@ -482,59 +482,67 @@ class ASG {
     return asg;
   }
 
+  /// Generate a class definition
   static ASG CLASS({
     required String name,
-    String? extendsClass,
-    List<String>? implementsList,
-    List<String>? mixinsList,
+    List<Object>? extendsList,
+    List<Object>? implementsList,
+    List<Object>? mixinsList,
     List<ASG>? fields,
     List<ASG>? constructors,
     List<ASG>? methods,
+    bool isAbstract = false,
   }) {
-    final newSa = ASG();
+    final asg = ASG();
+    final abstractStr = isAbstract ? 'abstract ' : '';
+    final extendsStr =
+        extendsList?.isNotEmpty == true
+            ? ' extends ${extendsList!.map((e) => e is ASG ? e.source : e).join(', ')}'
+            : '';
+    final implementsStr =
+        implementsList?.isNotEmpty == true
+            ? ' implements ${implementsList!.map((e) => e is ASG ? e.source : e).join(', ')}'
+            : '';
+    final mixinsStr =
+        mixinsList?.isNotEmpty == true
+            ? ' with ${mixinsList!.map((e) => e is ASG ? e.source : e).join(', ')}'
+            : '';
 
-    // Build class declaration
-    final declaration = [
-      'class $name',
-      if (extendsClass != null) 'extends $extendsClass',
-      if (implementsList?.isNotEmpty ?? false)
-        'implements ${implementsList!.join(', ')}',
-      if (mixinsList?.isNotEmpty ?? false) 'with ${mixinsList!.join(', ')}',
-    ].where((s) => s.isNotEmpty).join(' ');
-
-    newSa.advanceScope(declaration, () {
-      // Add fields
-      if (fields != null) {
-        for (var i = 0; i < fields.length; i++) {
-          newSa.add(fields[i].source);
-        }
-        if (constructors?.isNotEmpty == true || methods?.isNotEmpty == true) {
-          newSa.addLine('');
+    asg.addLine(
+      '${abstractStr}class $name$extendsStr$implementsStr$mixinsStr {',
+    );
+    asg.indentCounter++;
+    final hasFields = fields?.isNotEmpty == true;
+    final hasConstructors = constructors?.isNotEmpty == true;
+    final hasMethods = methods?.isNotEmpty == true;
+    if (hasFields) {
+      for (final field in fields!) {
+        asg.add(field.source);
+      }
+      if (hasConstructors || hasMethods) {
+        asg.addLine(''); // Blank line after fields if constructors or methods
+      }
+    }
+    if (hasConstructors) {
+      for (var i = 0; i < constructors!.length; i++) {
+        asg.add(constructors[i].source);
+        if (i < constructors.length - 1) {
+          asg.addLine(''); // Blank line between constructors
         }
       }
-
-      // Add constructors
-      if (constructors != null) {
-        for (var i = 0; i < constructors.length; i++) {
-          newSa.add(constructors[i].source);
-          // Add newline between constructors
-          if (i < constructors.length - 1) {
-            newSa.addLine('');
-          }
-        }
-        if (methods?.isNotEmpty == true) {
-          newSa.addLine('');
-        }
+      if (hasMethods) {
+        asg.addLine(''); // Blank line after constructors if methods
       }
-
-      // Add methods
-      if (methods != null) {
-        for (var i = 0; i < methods.length; i++) {
-          newSa.add(methods[i].source);
-        }
+    }
+    if (hasMethods) {
+      for (var i = 0; i < methods!.length; i++) {
+        asg.add(methods[i].source);
+        // Do NOT add blank lines between methods
       }
-    });
-    return newSa;
+    }
+    asg.indentCounter--;
+    asg.addLine('}');
+    return asg;
   }
 
   /// Generate a singleton class with standard pattern:
@@ -583,5 +591,75 @@ class ASG {
       ],
       methods: methods,
     );
+  }
+
+  static ASG PARAMETER({
+    required String name,
+    required String type,
+    bool isNamed = false,
+    bool isRequired = false,
+    String? defaultValue,
+  }) {
+    final asg = ASG();
+    final namedStr = isNamed ? 'required ' : '';
+    final defaultValueStr = defaultValue != null ? ' = $defaultValue' : '';
+    asg.addLine('${namedStr}${type} ${name}${defaultValueStr}');
+    return asg;
+  }
+
+  void generateClass(
+    String name, {
+    String? extends_,
+    List<String>? implements_,
+    List<String>? with_,
+    List<String>? fields,
+    List<String>? constructors,
+    List<String>? methods,
+  }) {
+    // Add class declaration
+    final extendsStr = extends_ != null ? ' extends $extends_' : '';
+    final implementsStr =
+        implements_?.isNotEmpty == true
+            ? ' implements ${implements_!.join(', ')}'
+            : '';
+    final withStr =
+        with_?.isNotEmpty == true ? ' with ${with_!.join(', ')}' : '';
+
+    addLine('class $name$extendsStr$implementsStr$withStr {');
+    indentCounter++;
+
+    // Add fields with proper spacing
+    if (fields?.isNotEmpty == true) {
+      for (var field in fields!) {
+        addLine(field);
+      }
+      addLine(''); // Add newline after fields
+    }
+
+    // Add constructors with proper spacing
+    if (constructors?.isNotEmpty == true) {
+      for (var i = 0; i < constructors!.length; i++) {
+        addLine(constructors[i]);
+        if (i < constructors.length - 1) {
+          addLine(''); // Add newline between constructors
+        }
+      }
+      if (methods?.isNotEmpty == true) {
+        addLine(''); // Add newline after constructors if there are methods
+      }
+    }
+
+    // Add methods with proper spacing
+    if (methods?.isNotEmpty == true) {
+      for (var i = 0; i < methods!.length; i++) {
+        addLine(methods[i]);
+        if (i < methods.length - 1) {
+          addLine(''); // Add newline between methods
+        }
+      }
+    }
+
+    indentCounter--;
+    addLine('}');
   }
 }

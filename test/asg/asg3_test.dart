@@ -48,7 +48,7 @@ void main() {
     test('generates class with inheritance', () {
       final result = ASG.CLASS(
         name: 'Employee',
-        extendsClass: 'Person',
+        extendsList: ['Person'],
         implementsList: ['Worker'],
         mixinsList: ['Loggable'],
         fields: [ASG.FIELD(name: 'salary', type: 'double', isFinal: true)],

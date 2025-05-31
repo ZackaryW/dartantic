@@ -1,6 +1,3 @@
-import 'package:dartantic/modelGen/annotations/annotations.dart';
-import 'package:dartantic/modelGen/annotations/validators.dart';
-
 /// Represents metadata for a field in a model
 class DttFieldMeta {
   final String type;

@@ -135,9 +135,7 @@ void main() {
 
     test('empty flow', () {
       // This test demonstrates handling of empty conditions
-      final result = ASG.IF(
-        condition: 'x > 0'
-      );
+      final result = ASG.IF(condition: 'x > 0');
       expect(result.source, equals('if (x > 0) {\n}\n'));
     });
   });
