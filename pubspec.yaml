@@ -9,12 +9,17 @@ environment:
 dependencies:
   build_runner: ^2.4.0
   source_gen: ^2.0.0
+  meta: ^1.9.1
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   test: ^1.24.0
   lints: ^3.0.0
   analyzer: ^7.4.5
   build: ^2.4.0
+  bloc_test: ^9.1.5
+  bloc: ^8.1.1
 
 
 # For information on the generic Dart part of this file, see the
