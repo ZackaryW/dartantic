@@ -1,5 +1,5 @@
-import 'package:dartantic/core/annotations/annotations.dart';
-import 'package:dartantic/core/annotations/validators.dart';
+import 'package:dartantic/modelGen/annotations/annotations.dart';
+import 'package:dartantic/modelGen/annotations/validators.dart';
 
 /// Represents metadata for a field in a model
 class DttFieldMeta {

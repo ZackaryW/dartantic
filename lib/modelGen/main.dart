@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-import '../core/annotations/annotations.dart';
+import 'annotations/annotations.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 // Import modular generators
