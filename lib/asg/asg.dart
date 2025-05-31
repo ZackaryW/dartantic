@@ -92,7 +92,13 @@ class ASG {
     final result = <String>[];
 
     for (var i = 0; i < lines.length; i++) {
-      final line = lines[i];
+      var line = lines[i];
+      // Handle escaped newlines
+      if (line.endsWith('\\n')) {
+        line = line.substring(0, line.length - 2);
+        result.add(line);
+        continue;
+      }
       // Keep empty lines that are between non-empty lines
       if (line.trim().isEmpty) {
         if (i > 0 &&
@@ -322,6 +328,42 @@ class ASG {
     return ASG.fromLines(['$declaration;']);
   }
 
+  /// Generate a Dart getter
+  static ASG GETTER({
+    required String name,
+    required String returnType,
+    required ASG body,
+    bool isOverride = false,
+    bool isStatic = false,
+  }) {
+    final newSa = ASG();
+    if (isOverride) newSa.addLine('@override');
+    final staticStr = isStatic ? 'static ' : '';
+    newSa.advanceScope('$staticStr$returnType get $name', () {
+      newSa.add(body.source);
+    });
+    return newSa;
+  }
+
+  /// Generate a Dart setter
+  static ASG SETTER({
+    required String name,
+    required String paramType,
+    required String paramName,
+    required ASG body,
+    bool isOverride = false,
+    bool isStatic = false,
+  }) {
+    final newSa = ASG();
+    if (isOverride) newSa.addLine('@override');
+    final staticStr = isStatic ? 'static ' : '';
+    newSa.advanceScope('$staticStr set $name($paramType $paramName)', () {
+      newSa.add(body.source);
+    });
+    return newSa;
+  }
+
+  /// Generate a Dart method, getter, or setter
   static ASG METHOD({
     required String name,
     String? returnType,
@@ -330,35 +372,114 @@ class ASG {
     bool isStatic = false,
     bool isAsync = false,
     bool isOverride = false,
+    bool isGetter = false,
+    bool isSetter = false,
+    String? setterParamType,
+    String? setterParamName,
   }) {
     final newSa = ASG();
-
-    // Add override annotation on its own line if present
-    if (isOverride) {
-      newSa.addLine('@override');
-    }
-
+    if (isOverride) newSa.addLine('@override');
     final modifiers = [
       if (isStatic) 'static',
     ].where((m) => m.isNotEmpty).join(' ');
-
     final returnTypeStr = returnType ?? 'void';
-    final paramsStr = parameters?.join(', ') ?? '';
     final asyncStr = isAsync ? 'async' : '';
-
-    final methodHeader = [
-      if (modifiers.isNotEmpty) modifiers,
-      returnTypeStr,
-      '$name($paramsStr)',
-      if (asyncStr.isNotEmpty) asyncStr,
-    ].where((s) => s.isNotEmpty).join(' ');
-
+    String methodHeader;
+    if (isGetter) {
+      methodHeader = [
+        if (modifiers.isNotEmpty) modifiers,
+        returnTypeStr,
+        'get $name',
+        if (asyncStr.isNotEmpty) asyncStr,
+      ].where((s) => s.isNotEmpty).join(' ');
+    } else if (isSetter) {
+      final paramType = setterParamType ?? 'dynamic';
+      final paramName = setterParamName ?? 'value';
+      methodHeader = [
+        if (modifiers.isNotEmpty) modifiers,
+        'set $name($paramType $paramName)',
+        if (asyncStr.isNotEmpty) asyncStr,
+      ].where((s) => s.isNotEmpty).join(' ');
+    } else {
+      final paramsStr = parameters?.join(', ') ?? '';
+      methodHeader = [
+        if (modifiers.isNotEmpty) modifiers,
+        returnTypeStr,
+        '$name($paramsStr)',
+        if (asyncStr.isNotEmpty) asyncStr,
+      ].where((s) => s.isNotEmpty).join(' ');
+    }
     newSa.advanceScope(methodHeader, () {
       if (body != null) {
         newSa.add(body.source);
       }
     });
     return newSa;
+  }
+
+  /// Generate a Dart constructor.
+  /// For const constructors with initializers, emits a body block { }.
+  /// For const constructors without initializers, emits a semicolon.
+  /// For non-const constructors, emits a body block if body is provided or noBody is false.
+  static ASG CONSTRUCTOR({
+    required String name,
+    List<String> parameters = const [],
+    List<String> initializers = const [],
+    bool isConst = false,
+    bool isFactory = false,
+    bool isPrivate = false,
+    bool noBody = false,
+    ASG? body,
+  }) {
+    final asg = ASG();
+
+    // Split the name into class name and constructor name
+    final parts = name.split('.');
+    final className = parts[0];
+    final constructorName = parts.length > 1 ? parts[1] : '';
+
+    // Build the prefix with proper privacy handling
+    final prefix = [
+      if (isFactory) 'factory ',
+      if (isConst) 'const ',
+      if (isPrivate) '_$className' else className,
+      if (constructorName.isNotEmpty) '.$constructorName',
+    ].join('');
+
+    // Build constructor header
+    final header = [
+      prefix,
+      '(',
+      parameters.join(', '),
+      ')',
+      if (initializers.isNotEmpty) ' : ${initializers.join(', ')}',
+    ].join('');
+
+    // Handle different constructor cases
+    if (isConst) {
+      if (initializers.isNotEmpty) {
+        // Const constructor with initializers gets a body block
+        asg.addLine('$header {');
+        asg.addLine('}');
+      } else {
+        // Const constructor without initializers gets a semicolon
+        asg.addLine('$header;');
+      }
+    } else if (body != null || !noBody) {
+      // Non-const constructor with body or noBody=false gets a body block
+      asg.addLine('$header {');
+      if (body != null) {
+        asg.indentCounter++;
+        asg.add(body.source);
+        asg.indentCounter--;
+      }
+      asg.addLine('}');
+    } else {
+      // Non-const constructor with noBody=true gets a semicolon
+      asg.addLine('$header;');
+    }
+
+    return asg;
   }
 
   static ASG CLASS({
@@ -416,34 +537,51 @@ class ASG {
     return newSa;
   }
 
-  static ASG CONSTRUCTOR({
+  /// Generate a singleton class with standard pattern:
+  /// - Private constructor
+  /// - Static late instance
+  /// - Factory constructor that returns the instance
+  static ASG SINGLETON({
     required String name,
-    List<String>? parameters,
-    List<String>? initializers,
-    ASG? body,
-    bool isConst = false,
-    bool isFactory = false,
-    bool isPrivate = false,
+    List<String>? implementsList,
+    List<String>? mixinsList,
+    List<ASG>? fields,
+    List<ASG>? methods,
+    String? instanceName,
   }) {
-    final newSa = ASG();
-    final modifiers = [
-      if (isConst) 'const',
-      if (isFactory) 'factory',
-    ].where((m) => m.isNotEmpty).join(' ');
+    final instanceFieldName = instanceName ?? '_instance';
 
-    final paramsStr = parameters?.join(', ') ?? '';
-    final initializersStr = initializers?.join(', ') ?? '';
-    // For private constructors, use the name as is since it should already include ._internal
-    final constructorName = name;
-
-    newSa.advanceScope(
-      '${modifiers.isNotEmpty ? '$modifiers ' : ''}$constructorName($paramsStr)${initializersStr.isNotEmpty ? ' : $initializersStr' : ''}',
-      () {
-        if (body != null) {
-          newSa.add(body.source);
-        }
-      },
+    return ASG.CLASS(
+      name: name,
+      implementsList: implementsList,
+      mixinsList: mixinsList,
+      fields: [
+        // Add static late instance field
+        ASG.FIELD(
+          name: instanceFieldName,
+          type: name,
+          isStatic: true,
+          isLate: true,
+        ),
+        // Add any additional fields
+        if (fields != null) ...fields,
+      ],
+      constructors: [
+        // Private constructor
+        ASG.CONSTRUCTOR(name: '$name._internal', isPrivate: true, noBody: true),
+        // Factory constructor
+        ASG.CONSTRUCTOR(
+          name: name,
+          isFactory: true,
+          body: ASG.fromLines([
+            'if ($instanceFieldName == null) {',
+            '  $instanceFieldName = $name._internal();',
+            '}',
+            'return $instanceFieldName!;',
+          ]),
+        ),
+      ],
+      methods: methods,
     );
-    return newSa;
   }
 }
